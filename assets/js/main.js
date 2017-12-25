@@ -1,19 +1,18 @@
 /*
-	Solid State by HTML5 UP
+	Big Picture by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
 (function($) {
 
-	"use strict";
-
 	skel.breakpoints({
-		xlarge:	'(max-width: 1680px)',
-		large:	'(max-width: 1280px)',
-		medium:	'(max-width: 980px)',
-		small:	'(max-width: 736px)',
-		xsmall:	'(max-width: 480px)'
+		xxlarge: '(max-width: 1920px)',
+		xlarge: '(max-width: 1680px)',
+		large: '(max-width: 1280px)',
+		medium: '(max-width: 1000px)',
+		small: '(max-width: 736px)',
+		xsmall: '(max-width: 480px)',
 	});
 
 	$(function() {
@@ -21,7 +20,7 @@
 		var	$window = $(window),
 			$body = $('body'),
 			$header = $('#header'),
-			$banner = $('#banner');
+			$all = $body.add($header);
 
 		// Disable animations/transitions until the page has loaded.
 			$body.addClass('is-loading');
@@ -29,136 +28,208 @@
 			$window.on('load', function() {
 				window.setTimeout(function() {
 					$body.removeClass('is-loading');
-				}, 100);
+				}, 0);
+			});
+
+		// Touch mode.
+			skel.on('change', function() {
+
+				if (skel.vars.mobile || skel.breakpoint('small').active)
+					$body.addClass('is-touch');
+				else
+					$body.removeClass('is-touch');
+
 			});
 
 		// Fix: Placeholder polyfill.
 			$('form').placeholder();
 
-		// Prioritize "important" elements on medium.
-			skel.on('+medium -medium', function() {
+		// Fix: IE flexbox fix.
+			if (skel.vars.IEVersion <= 11
+			&&	skel.vars.IEVersion >= 10) {
+
+				var $main = $('.main.fullscreen'),
+					IEResizeTimeout;
+
+				$window
+					.on('resize.ie-flexbox-fix', function() {
+
+						clearTimeout(IEResizeTimeout);
+
+						IEResizeTimeout = setTimeout(function() {
+
+							var wh = $window.height();
+
+							$main.each(function() {
+
+								var $this = $(this);
+
+								$this.css('height', '');
+
+								if ($this.height() <= wh)
+									$this.css('height', (wh - 50) + 'px');
+
+							});
+
+						});
+
+					})
+					.triggerHandler('resize.ie-flexbox-fix');
+
+			}
+
+		// Prioritize "important" elements on small.
+			skel.on('+small -small', function() {
 				$.prioritize(
-					'.important\\28 medium\\29',
-					skel.breakpoint('medium').active
+					'.important\\28 small\\29',
+					skel.breakpoint('small').active
 				);
 			});
 
-		// Header.
-			if (skel.vars.IEVersion < 9)
-				$header.removeClass('alt');
+		// Gallery.
+			$window.on('load', function() {
 
-			if ($banner.length > 0
-			&&	$header.hasClass('alt')) {
+				var $gallery = $('.gallery');
 
-				$window.on('resize', function() { $window.trigger('scroll'); });
+				$gallery.poptrox({
+					baseZIndex: 10001,
+					useBodyOverflow: false,
+					usePopupEasyClose: false,
+					overlayColor: '#1f2328',
+					overlayOpacity: 0.65,
+					usePopupDefaultStyling: false,
+					usePopupCaption: true,
+					popupLoaderText: '',
+					windowMargin: 50,
+					usePopupNav: true
+				});
 
-				$banner.scrollex({
-					bottom:		$header.outerHeight(),
-					terminate:	function() { $header.removeClass('alt'); },
-					enter:		function() { $header.addClass('alt'); },
-					leave:		function() { $header.removeClass('alt'); }
+				// Hack: Adjust margins when 'small' activates.
+					skel
+						.on('-small', function() {
+							$gallery.each(function() {
+								$(this)[0]._poptrox.windowMargin = 50;
+							});
+						})
+						.on('+small', function() {
+							$gallery.each(function() {
+								$(this)[0]._poptrox.windowMargin = 5;
+							});
+						});
+
+			});
+
+		// Section transitions.
+			if (skel.canUse('transition')) {
+
+				var on = function() {
+
+					// Galleries.
+						$('.gallery')
+							.scrollex({
+								top:		'30vh',
+								bottom:		'30vh',
+								delay:		50,
+								initialize:	function() { $(this).addClass('inactive'); },
+								terminate:	function() { $(this).removeClass('inactive'); },
+								enter:		function() { $(this).removeClass('inactive'); },
+								leave:		function() { $(this).addClass('inactive'); }
+							});
+
+					// Generic sections.
+						$('.main.style1')
+							.scrollex({
+								mode:		'middle',
+								delay:		100,
+								initialize:	function() { $(this).addClass('inactive'); },
+								terminate:	function() { $(this).removeClass('inactive'); },
+								enter:		function() { $(this).removeClass('inactive'); },
+								leave:		function() { $(this).addClass('inactive'); }
+							});
+
+						$('.main.style2')
+							.scrollex({
+								mode:		'middle',
+								delay:		100,
+								initialize:	function() { $(this).addClass('inactive'); },
+								terminate:	function() { $(this).removeClass('inactive'); },
+								enter:		function() { $(this).removeClass('inactive'); },
+								leave:		function() { $(this).addClass('inactive'); }
+							});
+
+					// Contact.
+						$('#contact')
+							.scrollex({
+								top:		'50%',
+								delay:		50,
+								initialize:	function() { $(this).addClass('inactive'); },
+								terminate:	function() { $(this).removeClass('inactive'); },
+								enter:		function() { $(this).removeClass('inactive'); },
+								leave:		function() { $(this).addClass('inactive'); }
+							});
+
+				};
+
+				var off = function() {
+
+					// Galleries.
+						$('.gallery')
+							.unscrollex();
+
+					// Generic sections.
+						$('.main.style1')
+							.unscrollex();
+
+						$('.main.style2')
+							.unscrollex();
+
+					// Contact.
+						$('#contact')
+							.unscrollex();
+
+				};
+
+				skel.on('change', function() {
+
+					if (skel.breakpoint('small').active)
+						(off)();
+					else
+						(on)();
+
 				});
 
 			}
 
-		// Menu.
-			var $menu = $('#menu');
+		// Events.
+			var resizeTimeout, resizeScrollTimeout;
 
-			$menu._locked = false;
+			$window
+				.resize(function() {
 
-			$menu._lock = function() {
+					// Disable animations/transitions.
+						$body.addClass('is-resizing');
 
-				if ($menu._locked)
-					return false;
+					window.clearTimeout(resizeTimeout);
 
-				$menu._locked = true;
+					resizeTimeout = window.setTimeout(function() {
 
-				window.setTimeout(function() {
-					$menu._locked = false;
-				}, 350);
+						// Update scrolly links.
+							$('a[href^="#"]').scrolly({
+								speed: 1500,
+								offset: $header.outerHeight() - 1
+							});
 
-				return true;
-
-			};
-
-			$menu._show = function() {
-
-				if ($menu._lock())
-					$body.addClass('is-menu-visible');
-
-			};
-
-			$menu._hide = function() {
-
-				if ($menu._lock())
-					$body.removeClass('is-menu-visible');
-
-			};
-
-			$menu._toggle = function() {
-
-				if ($menu._lock())
-					$body.toggleClass('is-menu-visible');
-
-			};
-
-			$menu
-				.appendTo($body)
-				.on('click', function(event) {
-
-					event.stopPropagation();
-
-					// Hide.
-						$menu._hide();
-
-				})
-				.find('.inner')
-					.on('click', '.close', function(event) {
-
-						event.preventDefault();
-						event.stopPropagation();
-						event.stopImmediatePropagation();
-
-						// Hide.
-							$menu._hide();
-
-					})
-					.on('click', function(event) {
-						event.stopPropagation();
-					})
-					.on('click', 'a', function(event) {
-
-						var href = $(this).attr('href');
-
-						event.preventDefault();
-						event.stopPropagation();
-
-						// Hide.
-							$menu._hide();
-
-						// Redirect.
+						// Re-enable animations/transitions.
 							window.setTimeout(function() {
-								window.location.href = href;
-							}, 350);
+								$body.removeClass('is-resizing');
+								$window.trigger('scroll');
+							}, 0);
 
-					});
-
-			$body
-				.on('click', 'a[href="#menu"]', function(event) {
-
-					event.stopPropagation();
-					event.preventDefault();
-
-					// Toggle.
-						$menu._toggle();
+					}, 100);
 
 				})
-				.on('keydown', function(event) {
-
-					// Hide on escape.
-						if (event.keyCode == 27)
-							$menu._hide();
-
+				.load(function() {
+					$window.trigger('resize');
 				});
 
 	});
