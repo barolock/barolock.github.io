@@ -22,6 +22,7 @@
 	top: 0;
 	height: 3em;
 	line-height: 3em;
+
 }
 
 .landing-barolock-logo {
@@ -29,6 +30,22 @@
 	line-height: 12em;
 }
 
+@media screen and (max-width: 1000px) {
+
+	.header-barolock-logo {
+		position: absolute;
+		left: .5em;
+		top: 0;
+		height: 2.75em;
+		line-height: 2.75em;
+
+	}
+
+	.landing-barolock-logo {
+		height: 6em;
+		line-height: 6em;
+	}
+}
 
 /* Reset */
 
